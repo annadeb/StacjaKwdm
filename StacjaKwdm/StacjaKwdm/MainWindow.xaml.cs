@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.DirectoryServices.Protocols;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -18,6 +19,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Newtonsoft.Json;
 using RestSharp;
+using RestSharp.Extensions;
 using RestSharp.Serialization.Json;
 using StacjaKwdm.Models;
 
@@ -73,31 +75,22 @@ namespace StacjaKwdm
 			var request = new RestRequest("series/" + seriesUID, Method.GET);
 			var query = _client.Execute<Serie>(request);
 			var instances = query.Data.Instances;
-
 			foreach (var item in instances)
 			{
-				var request2 = new RestRequest("instances/" + item+"/file", Method.GET);
-				var query2 = _client.Execute<Serie>(request2);
 
-				//query2.RawBytes
+				var request2 = new RestRequest("instances/" + item + "/preview", Method.GET);
+				request2.AddHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
+				var query2 = _client.Execute(request2);
+				_client.DownloadData(request2).SaveAs(@"asd.png");
 			}
+			var bitmap = new BitmapImage();
+			bitmap.BeginInit();
+			string path = @"asd.png";
+			var pathAbs = System.IO.Path.GetFullPath(path);
+			bitmap.UriSource = new Uri(pathAbs, UriKind.RelativeOrAbsolute);
+			bitmap.EndInit();
+			bitmap.CacheOption = BitmapCacheOption.OnLoad;
+			image1.Source = bitmap;
 		}
-		//private static BitmapImage LoadImage(byte[] imageData)
-		//{
-		//	if (imageData == null || imageData.Length == 0) return null;
-		//	var image = new BitmapImage();
-		//	using (var mem = new MemoryStream(imageData))
-		//	{
-		//		mem.Position = 0;
-		//		image.BeginInit();
-		//		image.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
-		//		image.CacheOption = BitmapCacheOption.OnLoad;
-		//		image.UriSource = null;
-		//		image.StreamSource = mem;
-		//		image.EndInit();
-		//	}
-		//	image.Freeze();
-		//	return image;
-		//}
 	}
 }
