@@ -22,6 +22,7 @@ using RestSharp;
 using RestSharp.Extensions;
 using RestSharp.Serialization.Json;
 using StacjaKwdm.Models;
+using System.Diagnostics;
 
 namespace StacjaKwdm
 {
@@ -92,5 +93,62 @@ namespace StacjaKwdm
 			bitmap.CacheOption = BitmapCacheOption.OnLoad;
 			image1.Source = bitmap;
 		}
+
+        private void autoSegmentButton_Click(object sender, RoutedEventArgs e)
+        {
+			
+			string args = "1 2";
+			System.IO.DirectoryInfo myDirectory = new DirectoryInfo(Environment.CurrentDirectory);
+			string parentDirectory = myDirectory.Parent.FullName;
+			string path = System.IO.Path.Combine(parentDirectory, @"..\..\..\Python_segmentation\segmentation.py");
+
+			string res = RunFromCmd(@path, args);
+		}
+		public static string RunFromCmd(string rCodeFilePath, string args)
+		{
+			string file = rCodeFilePath;
+			string result = string.Empty;
+
+			try
+			{
+
+				var info = new ProcessStartInfo();
+				
+
+				info.FileName = @"C:\Users\Wika\anaconda3\pythonw.exe";
+				info.Arguments = rCodeFilePath + " " + args;
+
+				info.RedirectStandardInput = false;
+				info.RedirectStandardOutput = true;
+				info.UseShellExecute = false;
+			//	info.CreateNoWindow = false;
+				info.RedirectStandardOutput = true;
+				using (Process process = Process.Start(info))
+				{
+					using (StreamReader reader = process.StandardOutput)
+					{
+						result = reader.ReadToEnd();
+						Console.Write(result);
+					}
+				}
+
+				/*using (var proc = new Process())
+				{
+					proc.StartInfo = info;
+					proc.Start();
+					proc.WaitForExit();
+					if (proc.ExitCode == 0)
+					{
+						result = proc.StandardOutput.ReadToEnd();
+					}
+				}*/
+				return result;
+			}
+			catch (Exception ex)
+			{
+				throw new Exception("R Script failed: " + result, ex);
+			}
+		}
+		
 	}
 }
