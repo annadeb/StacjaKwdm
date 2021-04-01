@@ -22,15 +22,23 @@ using RestSharp;
 using RestSharp.Extensions;
 using RestSharp.Serialization.Json;
 using StacjaKwdm.Models;
+//using Aspose.Imaging;
+//using Aspose.Imaging.FileFormats.Dicom;
+//using Aspose.Imaging.Sources;
+using Dicom;
+using Dicom.Imaging;
 
 namespace StacjaKwdm
 {
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
 	/// </summary>
+	
 	public partial class MainWindow : Window
 	{
 		public RestClient _client;
+		public int sliderValue;
+		public string seriesUID;
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -70,10 +78,11 @@ namespace StacjaKwdm
 
 		private void instanceListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
-			var seriesUID = (sender as ListBox).SelectedItem.ToString();
+			seriesUID = (sender as ListBox).SelectedItem.ToString();
 
 			var request = new RestRequest("series/" + seriesUID, Method.GET);
 			var query = _client.Execute<Serie>(request);
+			System.IO.Directory.CreateDirectory(seriesUID);
 			var instances = query.Data.Instances;
 			foreach (var item in instances)
 			{
@@ -81,16 +90,31 @@ namespace StacjaKwdm
 				var request2 = new RestRequest("instances/" + item + "/file", Method.GET); // /preview do .png
 				request2.AddHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
 				var query2 = _client.Execute(request2);
-				_client.DownloadData(request2).SaveAs(@"asd.dcm"); //asd.png
+				_client.DownloadData(request2).SaveAs(seriesUID+ "/" + item + ".dcm"); //asd.png
 			}
-			var bitmap = new BitmapImage();
-			bitmap.BeginInit();
-			string path = @"asd.png";
-			var pathAbs = System.IO.Path.GetFullPath(path);
-			bitmap.UriSource = new Uri(pathAbs, UriKind.RelativeOrAbsolute);
-			bitmap.EndInit();
-			bitmap.CacheOption = BitmapCacheOption.OnLoad;
-			image1.Source = bitmap;
+			pictureSlider.Maximum = instances.Count() - 1;
+			DisplayDicom(seriesUID, sliderValue);
+		}
+
+		private void pictureSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+		{
+			sliderValue = (int) pictureSlider.Value;
+			DisplayDicom(seriesUID, sliderValue);
+		
+		}
+		public void DisplayDicom(string seriesUID,int sliderValue)
+		{
+			string[] filesInDirectory = Directory.GetFiles(seriesUID).ToArray();
+			string path =  filesInDirectory[sliderValue];	
+			var dicomImg = new DicomImage(@path);
+			Bitmap renderedImage = dicomImg.RenderImage().As<Bitmap>();
+			var ScreenCapture = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
+			renderedImage.GetHbitmap(),
+			IntPtr.Zero,
+			System.Windows.Int32Rect.Empty,
+			BitmapSizeOptions.FromWidthAndHeight(renderedImage.Width, renderedImage.Height));
+			image1.Source = ScreenCapture;
+
 		}
 	}
 }
