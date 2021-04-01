@@ -78,10 +78,10 @@ namespace StacjaKwdm
 			foreach (var item in instances)
 			{
 
-				var request2 = new RestRequest("instances/" + item + "/preview", Method.GET);
+				var request2 = new RestRequest("instances/" + item + "/file", Method.GET); // /preview do .png
 				request2.AddHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
 				var query2 = _client.Execute(request2);
-				_client.DownloadData(request2).SaveAs(@"asd.png");
+				_client.DownloadData(request2).SaveAs(@"asd.dcm"); //asd.png
 			}
 			var bitmap = new BitmapImage();
 			bitmap.BeginInit();
