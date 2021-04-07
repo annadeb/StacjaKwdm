@@ -3,15 +3,15 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ctrls="clr-namespace:ColorPickerControls;assembly=ColorPickerControls"
         xmlns:local="clr-namespace:StacjaKwdm"
         mc:Ignorable="d"
         Title="Stacja KWDM" Height="450" Width="800">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="3*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="2*"/>
@@ -22,34 +22,27 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <GroupBox x:Name="serverGroupBox" Header="Serwer" Grid.Column="0" Grid.Row="0" Margin="10,10,10,10" VerticalAlignment="Stretch">
-            <Label x:Name="serverLabel" Content="Namiary" HorizontalAlignment="Left" Margin="10,10,10,10" VerticalAlignment="Top"/>
+            <Label x:Name="serverLabel" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="40">
+                <TextBlock TextWrapping="WrapWithOverflow">
+                    Brak połączenia z serwerem Orthanc.
+                </TextBlock>
+            </Label>
         </GroupBox>
         <ListBox x:Name="patientListBox"  Grid.Column="0" Grid.Row="1" Margin="10,10,10,10" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" SelectionChanged="patientListBox_SelectionChanged" />
         <ListBox x:Name="studyListBox" Grid.Column="0" Grid.Row="2" Grid.RowSpan="2" Margin="10,10,10,10" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" SelectionChanged="studyListBox_SelectionChanged" />
         <ListBox x:Name="instanceListBox" Grid.Column="0" Grid.Row="4" Grid.RowSpan="2" Margin="10,10,10,10" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" SelectionChanged="instanceListBox_SelectionChanged" />
-        <Image x:Name="image1" Source="https://www.dolina-noteci.pl/data/include/cms/Blog-DN/co_powinien_pi_kot.jpeg" Grid.Column="1" HorizontalAlignment="Stretch" Margin="10,10,100,10" Grid.ColumnSpan="2" Grid.RowSpan="2" VerticalAlignment="Stretch" />
-        <Image x:Name="image2" Source="https://www.dolina-noteci.pl/data/include/cms/Blog-DN/co_powinien_pi_kot.jpeg" Grid.Column="2" HorizontalAlignment="Stretch" Margin="100,10,10,10" Grid.ColumnSpan="2" Grid.RowSpan="2" VerticalAlignment="Stretch" />
+        <ctrls:ImageColorPicker x:Name="image1" Source="https://www.dolina-noteci.pl/data/include/cms/Blog-DN/co_powinien_pi_kot.jpeg" Grid.Column="1" HorizontalAlignment="Stretch" Grid.RowSpan="2" VerticalAlignment="Stretch" />
+        <Image x:Name="image2" Source="https://www.dolina-noteci.pl/data/include/cms/Blog-DN/co_powinien_pi_kot.jpeg" Grid.Column="2" HorizontalAlignment="Stretch" Grid.RowSpan="2" VerticalAlignment="Stretch" />
         <Slider x:Name="pictureSlider" Grid.Column="1" HorizontalAlignment="Stretch" Margin="10,0,10,0" Grid.Row="2" Grid.ColumnSpan="3" VerticalAlignment="Top" ValueChanged="pictureSlider_ValueChanged" IsSnapToTickEnabled="True" TickFrequency="1"/>
-        <Label x:Name="modalityLabel" Content="Modalności" Grid.Column="1" HorizontalAlignment="Left" Margin="10,20,0,0" Grid.Row="2" VerticalAlignment="Top"/>
-        <Label x:Name="window1Label" Content="Okno 1" Grid.Column="1" HorizontalAlignment="Left" Margin="10,20,0,0" Grid.Row="3" VerticalAlignment="Top"/>
-        <Label x:Name="window2Label" Content="Okno 2" Grid.Column="1" HorizontalAlignment="Right" Margin="10,20,10,0" Grid.Row="3" VerticalAlignment="Top"/>
-        <CheckBox x:Name="window1CheckBoxT1" Content="T1" Grid.Column="1" HorizontalAlignment="Left" Margin="10,5,0,0" Grid.Row="4" VerticalAlignment="Top"/>
-        <CheckBox x:Name="window1CheckBoxT1ce" Content="T1ce" Grid.Column="1" HorizontalAlignment="Left" Margin="10,25,0,0" Grid.Row="4" VerticalAlignment="Top"/>
-        <CheckBox x:Name="window1CheckBox21" Content="T2" Grid.Column="1" HorizontalAlignment="Left" Margin="10,5,0,0" Grid.Row="5" VerticalAlignment="Top"/>
-        <CheckBox x:Name="window1CheckBoxFlair" Content="Flair" Grid.Column="1" HorizontalAlignment="Left" Margin="10,25,0,0" Grid.Row="5" VerticalAlignment="Top"/>
 
-        <CheckBox x:Name="window2CheckBoxT1" Content="T1" Grid.Column="1" HorizontalAlignment="Right" Margin="10,5,30,0" Grid.Row="4" VerticalAlignment="Top"/>
-        <CheckBox x:Name="window2CheckBoxT1ce" Content="T1ce" Grid.Column="1" HorizontalAlignment="Right" Margin="10,25,18,0" Grid.Row="4" VerticalAlignment="Top"/>
-        <CheckBox x:Name="window2CheckBoxT2" Content="T2" Grid.Column="1" HorizontalAlignment="Right" Margin="10,5,30,0" Grid.Row="5" VerticalAlignment="Top"/>
-        <CheckBox x:Name="window2CheckBoxFlair" Content="Flair" Grid.Column="1" HorizontalAlignment="Right" Margin="10,25,21,0" Grid.Row="5" VerticalAlignment="Top"/>
-        <Button x:Name="autoSegmentButton" Content="Segmentuj automatycznie" Grid.Column="2" HorizontalAlignment="Stretch" Margin="10,10,10,10" Grid.Row="3" VerticalAlignment="Stretch"/>
-        <Button x:Name="readMasksButton" Content="Wczytaj maski" Grid.Column="3" HorizontalAlignment="Stretch" Margin="10,10,10,10" Grid.Row="3" VerticalAlignment="Stretch"/>
-        <TextBlock x:Name="tbDescription" Grid.Column="2" HorizontalAlignment="Stretch" Grid.Row="4" TextWrapping="Wrap" Margin="10,10,10,10"  Text="Opis" VerticalAlignment="Stretch"/>
-        <Button x:Name="saveMasksButton" Content="Zapisz maski" Grid.Column="2" HorizontalAlignment="Stretch" Margin="10,10,10,10" Grid.Row="5" VerticalAlignment="Stretch"/>
-        <Label x:Name="statisticsLabel" Content="Statystyki" Grid.Column="3" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="4" VerticalAlignment="Top"/>
-        <Label x:Name="volumeLabel" Content="Objętość guza" Grid.Column="3" HorizontalAlignment="Left" Margin="10,0,0,0" Grid.Row="5" VerticalAlignment="Top"/>
-        <Label x:Name="diceLabel" Content="Dice" Grid.Column="3" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="5" VerticalAlignment="Bottom"/>
-        <Label x:Name="volumeValueLabel" Content="25" Grid.Column="3" HorizontalAlignment="Right" Margin="10,0,0,0" Grid.Row="5" VerticalAlignment="Top"/>
-        <Label x:Name="diceValueLabel" Content="0,7" Grid.Column="3" HorizontalAlignment="Right" Margin="10,10,0,0" Grid.Row="5" VerticalAlignment="Bottom"/>
+        <Button x:Name="autoSegmentButton" Content="Segmentuj automatycznie" Grid.Column="1" HorizontalAlignment="Stretch" Margin="10,10,10,10" Grid.Row="3" VerticalAlignment="Stretch" Click="autoSegmentButton_Click"/>
+        <Button x:Name="readMasksButton" Content="Wczytaj maski" Grid.Column="2" HorizontalAlignment="Stretch" Margin="10,10,10,10" Grid.Row="3" VerticalAlignment="Stretch"/>
+        <TextBlock x:Name="tbDescription" Grid.Column="1" HorizontalAlignment="Stretch" Grid.Row="4" TextWrapping="Wrap" Margin="10,10,10,10"  Text="Opis" VerticalAlignment="Stretch"/>
+        <Button x:Name="saveMasksButton" Content="Zapisz maski" Grid.Column="1" HorizontalAlignment="Stretch" Margin="10,10,10,10" Grid.Row="5" VerticalAlignment="Stretch"/>
+        <Label x:Name="statisticsLabel" Content="Statystyki" Grid.Column="2" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="4" VerticalAlignment="Top"/>
+        <Label x:Name="volumeLabel" Content="Objętość guza" Grid.Column="2" HorizontalAlignment="Left" Margin="10,0,0,0" Grid.Row="5" VerticalAlignment="Top"/>
+        <Label x:Name="diceLabel" Content="Dice" Grid.Column="2" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="5" VerticalAlignment="Bottom"/>
+        <Label x:Name="volumeValueLabel" Content="25" Grid.Column="2" HorizontalAlignment="Right" Margin="10,0,0,0" Grid.Row="5" VerticalAlignment="Top"/>
+        <Label x:Name="diceValueLabel" Content="0,7" Grid.Column="2" HorizontalAlignment="Right" Margin="10,10,0,0" Grid.Row="5" VerticalAlignment="Bottom"/>
     </Grid>
 </Window>
