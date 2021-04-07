@@ -27,6 +27,8 @@ using StacjaKwdm.Models;
 //using Aspose.Imaging.Sources;
 using Dicom;
 using Dicom.Imaging;
+using segmentation;
+using MathWorks.MATLAB.NET.Arrays;
 
 namespace StacjaKwdm
 {
@@ -89,11 +91,19 @@ namespace StacjaKwdm
 
 				var request2 = new RestRequest("instances/" + item + "/file", Method.GET); // /preview do .png
 				request2.AddHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
-				var query2 = _client.Execute(request2);
+				//var query2 = _client.Execute(request2);
 				_client.DownloadData(request2).SaveAs(seriesUID+ "/" + item + ".dcm"); //asd.png
 			}
 			pictureSlider.Maximum = instances.Count() - 1;
 			DisplayDicom(seriesUID, sliderValue);
+			string[] filesInDirectory = Directory.GetFiles(seriesUID).ToArray();
+			for (int i = 0; i < filesInDirectory.Length; i++)
+			{
+				string path = filesInDirectory[i];
+				var dicomImg = new DicomImage(@path);
+				//var cos = dicomImg.Dataset.GetSequence(new DicomTag(0010, 0010));
+			}
+			
 		}
 
 		private void pictureSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -114,6 +124,15 @@ namespace StacjaKwdm
 			System.Windows.Int32Rect.Empty,
 			BitmapSizeOptions.FromWidthAndHeight(renderedImage.Width, renderedImage.Height));
 			image1.Source = ScreenCapture;
+
+		}
+
+		private void autoSegmentButton_Click(object sender, RoutedEventArgs e)
+		{
+			var klasa = new Class1();
+			//MWArray folderpath = "C:\\Users\\Anna\\Desktop\\Studia\\MAGISTERKA_3\\KomputeroweWspomaganieDiagnostykiMedycznej\\Projekt\\StacjaKwdm\\StacjaKwdm\\StacjaKwdm\\bin\\Debug\\c71658e3-68b7c35c-5216242c-fb200b08-aa56b7d0";
+			//var cos = klasa.segmentation(folderpath);
+			int a = 0;
 
 		}
 	}
