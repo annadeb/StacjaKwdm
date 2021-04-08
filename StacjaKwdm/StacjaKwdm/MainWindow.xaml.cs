@@ -53,7 +53,7 @@ namespace StacjaKwdm
 			var query = _client.Execute<List<string>>(request);
 			if (query.StatusCode == HttpStatusCode.OK)
 			{
-				serverLabel.Content = "Połączono z serwerem";
+				serverLabel.Content = "Połączono z serwerem.";
 			}
 			patientListBox.ItemsSource = query.Data;
 		}
@@ -73,6 +73,10 @@ namespace StacjaKwdm
 
 		private void studyListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
+			if((sender as ListBox).SelectedItem == null)
+			{
+				return;
+			}
 			var studyUID = (sender as ListBox).SelectedItem.ToString();
 
 			var request = new RestRequest("studies/" + studyUID, Method.GET);
@@ -83,6 +87,10 @@ namespace StacjaKwdm
 
 		private void instanceListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
+			if ((sender as ListBox).SelectedItem == null)
+			{
+				return;
+			}
 			seriesUID = (sender as ListBox).SelectedItem.ToString();
 
 			var request = new RestRequest("series/" + seriesUID, Method.GET);
@@ -134,7 +142,7 @@ namespace StacjaKwdm
 			_position = image1.Position;
 			if (_position.X==0 && _position.Y==0)
 			{
-				MessageBox.Show("Wybierz punkt startowy!");
+				MessageBox.Show("Wybierz punkt startowy!","Ostrzeżenie", MessageBoxButton.OK,MessageBoxImage.Warning);
 				return;
 			}
 			
