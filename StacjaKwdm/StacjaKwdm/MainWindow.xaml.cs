@@ -1,47 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.DirectoryServices.Protocols;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Security.RightsManagement;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Newtonsoft.Json;
 using RestSharp;
 using RestSharp.Extensions;
-using RestSharp.Serialization.Json;
 using StacjaKwdm.Models;
-//using Aspose.Imaging;
-//using Aspose.Imaging.FileFormats.Dicom;
-//using Aspose.Imaging.Sources;
 using Dicom;
 using Dicom.Imaging;
-using segmentation;
 using MathWorks.MATLAB.NET.Arrays;
-using ColorPickerControls;
+using segment_tumor;
+using System.Reflection;
 
 namespace StacjaKwdm
 {
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
 	/// </summary>
-	
+
 	public partial class MainWindow : Window
 	{
 		public RestClient _client;
 		public int sliderValue;
-		public string seriesUID;
+		public string _seriesUID;
 		public System.Windows.Point _position;
 
 		public MainWindow()
@@ -91,11 +76,12 @@ namespace StacjaKwdm
 			{
 				return;
 			}
-			seriesUID = (sender as ListBox).SelectedItem.ToString();
+			_seriesUID = (sender as ListBox).SelectedItem.ToString();
 
-			var request = new RestRequest("series/" + seriesUID, Method.GET);
+			var request = new RestRequest("series/" + _seriesUID, Method.GET);
 			var query = _client.Execute<Serie>(request);
-			System.IO.Directory.CreateDirectory(seriesUID);
+			var executableDirectory = Directory.GetParent(Assembly.GetExecutingAssembly().Location);
+			System.IO.Directory.CreateDirectory(executableDirectory+"\\"+_seriesUID);
 			var instances = query.Data.Instances;
 			foreach (var item in instances)
 			{
@@ -103,10 +89,10 @@ namespace StacjaKwdm
 				var request2 = new RestRequest("instances/" + item + "/file", Method.GET); // /preview do .png
 				request2.AddHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
 				//var query2 = _client.Execute(request2);
-				_client.DownloadData(request2).SaveAs(seriesUID+ "/" + item + ".dcm"); //asd.png
+				_client.DownloadData(request2).SaveAs(executableDirectory+"\\"+_seriesUID + "\\" + item + ".dcm"); //asd.png
 			}
 			pictureSlider.Maximum = instances.Count() - 1;
-			DisplayDicom(seriesUID, sliderValue);
+			DisplayDicom(_seriesUID, sliderValue);
 			//string[] filesInDirectory = Directory.GetFiles(seriesUID).ToArray();
 			//for (int i = 0; i < filesInDirectory.Length; i++)
 			//{
@@ -119,22 +105,35 @@ namespace StacjaKwdm
 		private void pictureSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
 		{
 			sliderValue = (int) pictureSlider.Value;
-			DisplayDicom(seriesUID, sliderValue);
+			DisplayDicom(_seriesUID, sliderValue);
 		
 		}
-		public void DisplayDicom(string seriesUID,int sliderValue)
+		public void DisplayDicom(string seriesUID, int sliderValue)
 		{
-			string[] filesInDirectory = Directory.GetFiles(seriesUID).ToArray();
-			string path =  filesInDirectory[sliderValue];	
-			var dicomImg = new DicomImage(@path);
-			Bitmap renderedImage = dicomImg.RenderImage().As<Bitmap>();
+			var executableDirectory = Directory.GetParent(Assembly.GetExecutingAssembly().Location);
+			string[] filesInDirectory = Directory.GetFiles(executableDirectory + "\\" + seriesUID).ToArray();
+			Dictionary<int, string> keyValuepair = new Dictionary<int, string>();
+			string path;
+			DicomImage dicomImg = null;
+			int instanceNumber;
+			for (int i = 0; i < filesInDirectory.Length; i++)
+			{
+				path = filesInDirectory[i];
+				dicomImg = new DicomImage(@path);
+				instanceNumber = dicomImg.Dataset.Get(DicomTag.InstanceNumber, 0);
+				keyValuepair.Add(instanceNumber, path);
+			}
+
+			string pathtoImage = keyValuepair[sliderValue + 1];
+			var dicomImage = new DicomImage(@pathtoImage);
+
+			Bitmap renderedImage = dicomImage.RenderImage().As<Bitmap>();
 			var ScreenCapture = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
 			renderedImage.GetHbitmap(),
 			IntPtr.Zero,
 			System.Windows.Int32Rect.Empty,
 			BitmapSizeOptions.FromWidthAndHeight(renderedImage.Width, renderedImage.Height));
 			image1.Source = ScreenCapture;
-
 		}
 
 		private void autoSegmentButton_Click(object sender, RoutedEventArgs e)
@@ -145,10 +144,18 @@ namespace StacjaKwdm
 				MessageBox.Show("Wybierz punkt startowy!","Ostrzeżenie", MessageBoxButton.OK,MessageBoxImage.Warning);
 				return;
 			}
-			
-			//var klasa = new Class1();
-			//MWArray folderpath = "C:\\Users\\Anna\\Desktop\\Studia\\MAGISTERKA_3\\KomputeroweWspomaganieDiagnostykiMedycznej\\Projekt\\StacjaKwdm\\StacjaKwdm\\StacjaKwdm\\bin\\Debug\\c71658e3-68b7c35c-5216242c-fb200b08-aa56b7d0";
-			//var cos = klasa.segmentation(folderpath);
+
+			var klasa = new Class1();
+			var executableDirectory = Directory.GetParent(Assembly.GetExecutingAssembly().Location);
+			MWArray folderpath = executableDirectory + "\\" + _seriesUID;
+			System.IO.Directory.CreateDirectory(executableDirectory + "\\" + _seriesUID + "_mask");
+			MWArray outputPath = executableDirectory + "\\" + _seriesUID + "_mask";
+			//MWArray folderpath = "C:\\Users\\anna-\\Desktop\\Studia\\MAGISTERKA_3\\KomputeroweWspomaganieDiagnostykiMedycznej\\Projekt\\StacjaKwdm\\StacjaKwdm\\StacjaKwdm\\bin\\x64\\Debug\\c71658e3-68b7c35c-5216242c-fb200b08-aa56b7d0";
+			//MWArray outputPath = "C:\\Users\\anna-\\Desktop\\Studia\\MAGISTERKA_3\\KomputeroweWspomaganieDiagnostykiMedycznej\\Projekt\\StacjaKwdm\\StacjaKwdm\\StacjaKwdm\\bin\\x64\\Debug\\c71658e3-68b7c35c-5216242c-fb200b08-aa56b7d0_mask";
+			var positionY = Math.Round(_position.Y);
+			var positionX = Math.Round(_position.X);
+			var output = klasa.segment_tumor(folderpath,positionY, positionX, sliderValue, outputPath);
+
 			int a = 0;
 		}
 	}
