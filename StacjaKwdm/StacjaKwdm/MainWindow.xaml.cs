@@ -15,6 +15,7 @@ using Dicom.Imaging;
 using MathWorks.MATLAB.NET.Arrays;
 using segment_tumor;
 using System.Reflection;
+using System.ComponentModel;
 
 namespace StacjaKwdm
 {
@@ -29,7 +30,8 @@ namespace StacjaKwdm
 		public string _seriesUID;
 		public System.Windows.Point _position;
 		public bool masksAvailable = false;
-
+		BackgroundWorker segmentationWorker = new BackgroundWorker();
+		private delegate void UpdateMyDelegatedelegate(string text);
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -42,6 +44,7 @@ namespace StacjaKwdm
 				serverLabel.Content = "Połączono z serwerem.";
 			}
 			patientListBox.ItemsSource = query.Data;
+			segmentationWorker.DoWork += SegmentationWorker_DoWork;
 		}
 	
 
@@ -137,6 +140,16 @@ namespace StacjaKwdm
 				MessageBox.Show("Wybierz punkt startowy!","Ostrzeżenie", MessageBoxButton.OK,MessageBoxImage.Warning);
 				return;
 			}
+			segmentationWorker.RunWorkerAsync();
+		}
+
+		private void SegmentationWorker_DoWork(object Sender, System.ComponentModel.DoWorkEventArgs e)
+		{
+			UpdateMyDelegatedelegate UpdateMyDelegate = new UpdateMyDelegatedelegate(UpdateMyDelegateLabel);
+			autoSegmentButton.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, UpdateMyDelegate, "Czekaj...");
+
+			UpdateMyDelegatedelegate UpdateMySpinner = new UpdateMyDelegatedelegate(UpdateMyDelegateSpinner);
+			busyImage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, UpdateMySpinner, "V");
 
 			var klasa = new Class1();
 			var executableDirectory = Directory.GetParent(Assembly.GetExecutingAssembly().Location);
@@ -145,9 +158,33 @@ namespace StacjaKwdm
 			MWArray outputPath = executableDirectory + "\\" + _seriesUID + "_mask";
 			var positionY = Math.Round(_position.Y);
 			var positionX = Math.Round(_position.X);
-			var output = klasa.segment_tumor(folderpath,positionY, positionX, sliderValue+1, outputPath);
+			var output = klasa.segment_tumor(folderpath, positionY, positionX, sliderValue + 1, outputPath);
+
 			masksAvailable = true;
+
+			autoSegmentButton.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, UpdateMyDelegate,"Segmentuj");
+			busyImage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, UpdateMySpinner, "H");
+			UpdateMyDelegatedelegate UpdateMyImage = new UpdateMyDelegatedelegate(UpdateMyDelegateImage);
+			image2.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, UpdateMyImage, "a");
+		}
+		private void UpdateMyDelegateLabel(string text)
+		{
+			autoSegmentButton.Content = text;
+		}
+		private void UpdateMyDelegateImage(string text)
+		{
 			DisplayMasks(_seriesUID, sliderValue);
+		}
+		private void UpdateMyDelegateSpinner(string text)
+		{
+			if (text == "V")
+			{
+				busyImage.Visibility = Visibility.Visible;
+			}
+			else
+			{
+				busyImage.Visibility = Visibility.Hidden;
+			}
 		}
 
 		public void DisplayMasks(string seriesUID, int sliderValue)

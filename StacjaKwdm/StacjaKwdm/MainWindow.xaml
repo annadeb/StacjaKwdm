@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ctrls="clr-namespace:ColorPickerControls;assembly=ColorPickerControls"
+        xmlns:gif="http://wpfanimatedgif.codeplex.com"
         xmlns:local="clr-namespace:StacjaKwdm"
         mc:Ignorable="d"
         Title="Stacja KWDM" Height="500" Width="800" ResizeMode="CanMinimize">
@@ -33,9 +34,10 @@
         <ListBox x:Name="instanceListBox" Grid.Column="0" Grid.Row="4" Grid.RowSpan="2" Margin="10,10,10,10" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" SelectionChanged="instanceListBox_SelectionChanged" />
         <ctrls:ImageColorPicker x:Name="image1" Source="https://www.dolina-noteci.pl/data/include/cms/Blog-DN/co_powinien_pi_kot.jpeg" Grid.Column="1" HorizontalAlignment="Stretch" Grid.RowSpan="2" VerticalAlignment="Stretch" />
         <Image x:Name="image2" Source="https://www.dolina-noteci.pl/data/include/cms/Blog-DN/co_powinien_pi_kot.jpeg" Grid.Column="2" HorizontalAlignment="Stretch" Grid.RowSpan="2" VerticalAlignment="Stretch" />
+        <Image x:Name="busyImage" Grid.Column="2" Grid.RowSpan="2"  gif:ImageBehavior.AnimatedSource="./././Assets/spinner.gif" Visibility="Hidden"/>
         <Slider x:Name="pictureSlider" Grid.Column="1" HorizontalAlignment="Stretch" Margin="10,0,10,0" Grid.Row="2" Grid.ColumnSpan="3" VerticalAlignment="Top" ValueChanged="pictureSlider_ValueChanged" IsSnapToTickEnabled="True" TickFrequency="1"/>
 
-        <Button x:Name="autoSegmentButton" Content="Segmentuj automatycznie" Grid.Column="1" HorizontalAlignment="Stretch" Margin="10,10,10,10" Grid.Row="3" VerticalAlignment="Stretch" Click="autoSegmentButton_Click"/>
+        <Button x:Name="autoSegmentButton" Content="Segmentuj" Grid.Column="1" HorizontalAlignment="Stretch" Margin="10,10,10,10" Grid.Row="3" VerticalAlignment="Stretch" Click="autoSegmentButton_Click"/>
         <Button x:Name="readMasksButton" Content="Wczytaj maski" Grid.Column="2" HorizontalAlignment="Stretch" Margin="10,10,10,10" Grid.Row="3" VerticalAlignment="Stretch"/>
         <TextBlock x:Name="tbDescription" Grid.Column="1" HorizontalAlignment="Stretch" Grid.Row="4" TextWrapping="Wrap" Margin="10,10,10,10"  Text="Opis" VerticalAlignment="Stretch"/>
         <Button x:Name="saveMasksButton" Content="Zapisz maski" Grid.Column="1" HorizontalAlignment="Stretch" Margin="10,10,10,10" Grid.Row="5" VerticalAlignment="Stretch"/>
