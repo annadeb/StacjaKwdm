@@ -28,6 +28,7 @@ namespace StacjaKwdm
 		public int sliderValue;
 		public string _seriesUID;
 		public System.Windows.Point _position;
+		public bool masksAvailable = false;
 
 		public MainWindow()
 		{
@@ -46,11 +47,8 @@ namespace StacjaKwdm
 
 		private void patientListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
-			//ListBoxItem lbi = ((sender as ListBox).SelectedItem as ListBoxItem);
 			var patientUID = (sender as ListBox).SelectedItem.ToString();
-
 			var request = new RestRequest("patients/"+ patientUID, Method.GET);
-			//var queryResult = client.Execute(request).Content.ToList();
 			var query = _client.Execute<Patient>(request);
 		
 			studyListBox.ItemsSource = query.Data.Studies;
@@ -85,7 +83,6 @@ namespace StacjaKwdm
 			var instances = query.Data.Instances;
 			foreach (var item in instances)
 			{
-
 				var request2 = new RestRequest("instances/" + item + "/file", Method.GET); // /preview do .png
 				request2.AddHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
 				//var query2 = _client.Execute(request2);
@@ -93,20 +90,16 @@ namespace StacjaKwdm
 			}
 			pictureSlider.Maximum = instances.Count() - 1;
 			DisplayDicom(_seriesUID, sliderValue);
-			//string[] filesInDirectory = Directory.GetFiles(seriesUID).ToArray();
-			//for (int i = 0; i < filesInDirectory.Length; i++)
-			//{
-			//	string path = filesInDirectory[i];
-			//	var dicomImg = new DicomImage(@path);
-			//	//var cos = dicomImg.Dataset.GetSequence(new DicomTag(0010, 0010));
-			//}
 		}
 
 		private void pictureSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
 		{
 			sliderValue = (int) pictureSlider.Value;
 			DisplayDicom(_seriesUID, sliderValue);
-		
+			if (masksAvailable)
+			{
+				DisplayMasks(_seriesUID, sliderValue);
+			}
 		}
 		public void DisplayDicom(string seriesUID, int sliderValue)
 		{
@@ -150,13 +143,39 @@ namespace StacjaKwdm
 			MWArray folderpath = executableDirectory + "\\" + _seriesUID;
 			System.IO.Directory.CreateDirectory(executableDirectory + "\\" + _seriesUID + "_mask");
 			MWArray outputPath = executableDirectory + "\\" + _seriesUID + "_mask";
-			//MWArray folderpath = "C:\\Users\\anna-\\Desktop\\Studia\\MAGISTERKA_3\\KomputeroweWspomaganieDiagnostykiMedycznej\\Projekt\\StacjaKwdm\\StacjaKwdm\\StacjaKwdm\\bin\\x64\\Debug\\c71658e3-68b7c35c-5216242c-fb200b08-aa56b7d0";
-			//MWArray outputPath = "C:\\Users\\anna-\\Desktop\\Studia\\MAGISTERKA_3\\KomputeroweWspomaganieDiagnostykiMedycznej\\Projekt\\StacjaKwdm\\StacjaKwdm\\StacjaKwdm\\bin\\x64\\Debug\\c71658e3-68b7c35c-5216242c-fb200b08-aa56b7d0_mask";
 			var positionY = Math.Round(_position.Y);
 			var positionX = Math.Round(_position.X);
 			var output = klasa.segment_tumor(folderpath,positionY, positionX, sliderValue, outputPath);
+			masksAvailable = true;
+			DisplayMasks(_seriesUID, sliderValue);
+		}
 
-			int a = 0;
+		public void DisplayMasks(string seriesUID, int sliderValue)
+		{
+			var executableDirectory = Directory.GetParent(Assembly.GetExecutingAssembly().Location);
+			string[] filesInDirectory = Directory.GetFiles(executableDirectory + "\\" + seriesUID + "_mask").ToArray();
+			Dictionary<int, string> keyValuepair = new Dictionary<int, string>();
+			string path;
+			DicomImage dicomImg = null;
+			int instanceNumber;
+			for (int i = 0; i < filesInDirectory.Length; i++)
+			{
+				path = filesInDirectory[i];
+				dicomImg = new DicomImage(@path);
+				instanceNumber = dicomImg.Dataset.Get(DicomTag.InstanceNumber, 0);
+				keyValuepair.Add(instanceNumber, path);
+			}
+
+			string pathtoImage = keyValuepair[sliderValue + 1];
+			var dicomImage = new DicomImage(@pathtoImage);
+
+			Bitmap renderedImage = dicomImage.RenderImage().As<Bitmap>();
+			var ScreenCapture = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
+			renderedImage.GetHbitmap(),
+			IntPtr.Zero,
+			System.Windows.Int32Rect.Empty,
+			BitmapSizeOptions.FromWidthAndHeight(renderedImage.Width, renderedImage.Height));
+			image2.Source = ScreenCapture;
 		}
 	}
 }
