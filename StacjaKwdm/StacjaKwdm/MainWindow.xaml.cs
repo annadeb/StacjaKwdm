@@ -145,7 +145,7 @@ namespace StacjaKwdm
 			MWArray outputPath = executableDirectory + "\\" + _seriesUID + "_mask";
 			var positionY = Math.Round(_position.Y);
 			var positionX = Math.Round(_position.X);
-			var output = klasa.segment_tumor(folderpath,positionY, positionX, sliderValue, outputPath);
+			var output = klasa.segment_tumor(folderpath,positionY, positionX, sliderValue+1, outputPath);
 			masksAvailable = true;
 			DisplayMasks(_seriesUID, sliderValue);
 		}

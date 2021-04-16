@@ -6,7 +6,7 @@
         xmlns:ctrls="clr-namespace:ColorPickerControls;assembly=ColorPickerControls"
         xmlns:local="clr-namespace:StacjaKwdm"
         mc:Ignorable="d"
-        Title="Stacja KWDM" Height="450" Width="800">
+        Title="Stacja KWDM" Height="500" Width="800" ResizeMode="CanMinimize">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*"/>
