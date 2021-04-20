@@ -55,7 +55,11 @@ namespace StacjaKwdm
 				{
 					conn.Open();
 					var result = command.ExecuteScalar();
-
+					if (result == null)
+					{
+						MessageBox.Show("Podano błędny login", "Błąd!", MessageBoxButton.OK, MessageBoxImage.Error);
+						return;
+					}
 					if (Regex.Replace(result.ToString(), @"\s+", "")!=passwordTb.Password)
 					{
 						MessageBox.Show("Podano błędne hasło","Błąd!",MessageBoxButton.OK,MessageBoxImage.Error);
