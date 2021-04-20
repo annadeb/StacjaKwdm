@@ -201,6 +201,7 @@ namespace StacjaKwdm
 				dicomImg = new DicomImage(@path);
 				instanceNumber = dicomImg.Dataset.Get(DicomTag.InstanceNumber, 0);
 				keyValuepair.Add(instanceNumber, path);
+				
 			}
 
 			string pathtoImage = keyValuepair[sliderValue + 1];
@@ -213,6 +214,62 @@ namespace StacjaKwdm
 			System.Windows.Int32Rect.Empty,
 			BitmapSizeOptions.FromWidthAndHeight(renderedImage.Width, renderedImage.Height));
 			image2.Source = ScreenCapture;
+		}
+
+		private void saveMasksButton_Click(object sender, RoutedEventArgs e)
+		{
+			var executableDirectory = Directory.GetParent(Assembly.GetExecutingAssembly().Location);
+			var pathToFolder = executableDirectory + "\\" + _seriesUID + "_mask";
+			string[] filesInDirectory = Directory.GetFiles(pathToFolder).ToArray();
+			foreach (var item in filesInDirectory)
+			{
+				var request = new RestRequest("instances", Method.POST);
+				string path= Path.Combine(pathToFolder, item);
+				request.AddFile("content", @path);
+				var query = _client.Execute(request);
+			}
+			
+		}
+
+		private void readMasksButton_Click(object sender, RoutedEventArgs e)
+		{
+			var executableDirectory = Directory.GetParent(Assembly.GetExecutingAssembly().Location);
+			string[] filesInDirectory = Directory.GetFiles(executableDirectory + "\\" + _seriesUID).ToArray();
+			string path = filesInDirectory[1];
+			var dicomImg = new DicomImage(@path);
+			string StudyNumber = dicomImg.Dataset.GetString(DicomTag.StudyInstanceUID);
+			var request = new RestRequest("tools/find", Method.POST);
+			request.AddHeader("Accept-Encoding", "gzip, deflate, br");
+			request.AddJsonBody(new
+			{
+				Level = "Series",
+				Query = new
+				{
+					StudyInstanceUID = StudyNumber+"_mask",
+					PatientID = "*"
+				}
+			}
+			);
+			var query = _client.Execute(request);
+			if (query.Content != "[]")
+			{
+				var maskSeriesUID = query.Content.Replace("\n", "").Replace("[", "").Replace("]", "").Replace("\"", "").Replace(" ", "");
+
+				var newRequest = new RestRequest("series/" + maskSeriesUID, Method.GET);
+				var newQuery = _client.Execute<Serie>(newRequest);
+				var newExecutableDirectory = Directory.GetParent(Assembly.GetExecutingAssembly().Location);
+				System.IO.Directory.CreateDirectory(executableDirectory + "\\" + maskSeriesUID + "_mask");
+				var instances = newQuery.Data.Instances;
+				foreach (var item in instances)
+				{
+					var request2 = new RestRequest("instances/" + item + "/file", Method.GET); // /preview do .png
+					request2.AddHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
+					//var query2 = _client.Execute(request2);
+					_client.DownloadData(request2).SaveAs(newExecutableDirectory + "\\" + maskSeriesUID + "_mask\\" + item + ".dcm"); //asd.png
+				}
+				DisplayMasks(maskSeriesUID, sliderValue);
+				masksAvailable = true;
+			}
 		}
 	}
 }
