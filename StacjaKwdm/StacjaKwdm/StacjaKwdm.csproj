@@ -195,6 +195,7 @@
     <Resource Include="Assets\spinner.gif" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Assets\image.JPG" />
     <Content Include="Database.mdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

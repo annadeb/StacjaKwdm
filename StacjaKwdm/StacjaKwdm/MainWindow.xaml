@@ -22,29 +22,27 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <GroupBox x:Name="serverGroupBox" Header="Serwer" Grid.Column="0" Grid.Row="0" Margin="10,10,10,10" VerticalAlignment="Stretch">
-            <Label x:Name="serverLabel" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="40">
-                <TextBlock TextWrapping="WrapWithOverflow">
+        <GroupBox x:Name="serverGroupBox" Header="Serwer" Grid.Column="0" Grid.Row="0" Margin="10,10,10,0" VerticalAlignment="Stretch">
+            <StackPanel >
+                <Label x:Name="serverLabel" HorizontalAlignment="Center" VerticalAlignment="Top" >
+                <TextBlock TextWrapping="Wrap" >
                     Brak połączenia z serwerem Orthanc.
                 </TextBlock>
             </Label>
+                <Button x:Name="refreshBt" Content="Odśwież" VerticalAlignment="Bottom" Click="refreshBt_Click" />
+            </StackPanel>
         </GroupBox>
         <ListBox x:Name="patientListBox"  Grid.Column="0" Grid.Row="1" Margin="10,10,10,10" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" SelectionChanged="patientListBox_SelectionChanged" />
         <ListBox x:Name="studyListBox" Grid.Column="0" Grid.Row="2" Grid.RowSpan="2" Margin="10,10,10,10" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" SelectionChanged="studyListBox_SelectionChanged" />
         <ListBox x:Name="instanceListBox" Grid.Column="0" Grid.Row="4" Grid.RowSpan="2" Margin="10,10,10,10" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" SelectionChanged="instanceListBox_SelectionChanged" />
-        <ctrls:ImageColorPicker x:Name="image1" Source="https://www.dolina-noteci.pl/data/include/cms/Blog-DN/co_powinien_pi_kot.jpeg" Grid.Column="1" HorizontalAlignment="Stretch" Grid.RowSpan="2" VerticalAlignment="Stretch" />
-        <Image x:Name="image2" Source="https://www.dolina-noteci.pl/data/include/cms/Blog-DN/co_powinien_pi_kot.jpeg" Grid.Column="2" HorizontalAlignment="Stretch" Grid.RowSpan="2" VerticalAlignment="Stretch" />
+        <ctrls:ImageColorPicker x:Name="image1" Source="./././Assets/image.JPG" Grid.Column="1" HorizontalAlignment="Stretch" Grid.RowSpan="2" VerticalAlignment="Stretch" />
+        <Image x:Name="image2" Grid.Column="2" HorizontalAlignment="Stretch" Grid.RowSpan="2" VerticalAlignment="Stretch" />
         <Image x:Name="busyImage" Grid.Column="2" Grid.RowSpan="2"  gif:ImageBehavior.AnimatedSource="./././Assets/spinner.gif" Visibility="Hidden"/>
-        <Slider x:Name="pictureSlider" Grid.Column="1" HorizontalAlignment="Stretch" Margin="10,0,10,0" Grid.Row="2" Grid.ColumnSpan="3" VerticalAlignment="Top" ValueChanged="pictureSlider_ValueChanged" IsSnapToTickEnabled="True" TickFrequency="1"/>
+        <Slider x:Name="pictureSlider" Grid.Column="1" HorizontalAlignment="Stretch" Margin="10,0,10,0" Grid.Row="2" Grid.ColumnSpan="3" VerticalAlignment="Center" ValueChanged="pictureSlider_ValueChanged" IsSnapToTickEnabled="True" TickFrequency="1"/>
 
         <Button x:Name="autoSegmentButton" Content="Segmentuj" Grid.Column="1" HorizontalAlignment="Stretch" Margin="10,10,10,10" Grid.Row="3" VerticalAlignment="Stretch" Click="autoSegmentButton_Click"/>
         <Button x:Name="readMasksButton" Content="Wczytaj maski" Grid.Column="2" HorizontalAlignment="Stretch" Margin="10,10,10,10" Grid.Row="3" VerticalAlignment="Stretch" Click="readMasksButton_Click"/>
-        <TextBlock x:Name="tbDescription" Grid.Column="1" HorizontalAlignment="Stretch" Grid.Row="4" TextWrapping="Wrap" Margin="10,10,10,10"  Text="Opis" VerticalAlignment="Stretch"/>
-        <Button x:Name="saveMasksButton" IsEnabled="False" Content="Zapisz maski" Grid.Column="1" HorizontalAlignment="Stretch" Margin="10,10,10,10" Grid.Row="5" VerticalAlignment="Stretch" Click="saveMasksButton_Click"/>
-        <Label x:Name="statisticsLabel" Content="Statystyki" Grid.Column="2" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="4" VerticalAlignment="Top"/>
-        <Label x:Name="volumeLabel" Content="Objętość guza" Grid.Column="2" HorizontalAlignment="Left" Margin="10,0,0,0" Grid.Row="5" VerticalAlignment="Top"/>
-        <Label x:Name="diceLabel" Content="Dice" Grid.Column="2" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="5" VerticalAlignment="Bottom"/>
-        <Label x:Name="volumeValueLabel" Content="25" Grid.Column="2" HorizontalAlignment="Right" Margin="10,0,0,0" Grid.Row="5" VerticalAlignment="Top"/>
-        <Label x:Name="diceValueLabel" Content="0,7" Grid.Column="2" HorizontalAlignment="Right" Margin="10,10,0,0" Grid.Row="5" VerticalAlignment="Bottom"/>
+        <TextBox x:Name="tbDescription" Text="Opis" Grid.Column="1" TextWrapping="Wrap" Grid.RowSpan="2" Grid.Row="4" Margin="10,10,10,10" VerticalAlignment="Stretch"/>
+        <Button x:Name="saveMasksButton" IsEnabled="False" Content="Zapisz maski" Grid.Column="2" HorizontalAlignment="Stretch" Margin="10,10,10,10" Grid.Row="5" VerticalAlignment="Stretch" Click="saveMasksButton_Click"/>
     </Grid>
 </Window>

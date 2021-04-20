@@ -36,18 +36,22 @@ namespace StacjaKwdm
 		{
 			InitializeComponent();
 			_client = new RestClient("http://localhost:8042");
+			GetPatients();
+
+			segmentationWorker.DoWork += SegmentationWorker_DoWork;
+		}
+	
+		private void GetPatients()
+		{
 			var request = new RestRequest("patients/", Method.GET);
-			//var queryResult = client.Execute(request).Content.ToList();
 			var query = _client.Execute<List<string>>(request);
 			if (query.StatusCode == HttpStatusCode.OK)
 			{
 				serverLabel.Content = "Połączono z serwerem.";
+				var iter = query.Data.Count();
+				patientListBox.ItemsSource = query.Data.Take(iter - 1);
 			}
-			var iter = query.Data.Count();
-			patientListBox.ItemsSource = query.Data.Take(iter - 1);
-			segmentationWorker.DoWork += SegmentationWorker_DoWork;
 		}
-	
 
 		private void patientListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
@@ -56,8 +60,15 @@ namespace StacjaKwdm
 			var query = _client.Execute<Patient>(request);
 		
 			studyListBox.ItemsSource = query.Data.Studies;
+			BitmapImage startImg = new BitmapImage();
+			startImg.BeginInit();
+			startImg.UriSource = new Uri("pack://application:,,,/StacjaKwdm;component/Assets/image.JPG");
+			startImg.EndInit();
+			image1.Source = startImg;
 			image2.Source = null;
 			saveMasksButton.IsEnabled=false;
+			tbDescription.Text = "";
+			instanceListBox.ItemsSource = null;
 		}
 
 		private void studyListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -200,30 +211,35 @@ namespace StacjaKwdm
 		public void DisplayMasks(string seriesUID, int sliderValue)
 		{
 			var executableDirectory = Directory.GetParent(Assembly.GetExecutingAssembly().Location);
-			string[] filesInDirectory = Directory.GetFiles(executableDirectory + "\\" + seriesUID + "_mask").ToArray();
-			Dictionary<int, string> keyValuepair = new Dictionary<int, string>();
-			string path;
-			DicomImage dicomImg = null;
-			int instanceNumber;
-			for (int i = 0; i < filesInDirectory.Length; i++)
+			
+			if (Directory.Exists(executableDirectory + "\\" + seriesUID + "_mask"))
 			{
-				path = filesInDirectory[i];
-				dicomImg = new DicomImage(@path);
-				instanceNumber = dicomImg.Dataset.Get(DicomTag.InstanceNumber, 0);
-				keyValuepair.Add(instanceNumber, path);
-				
+				string[] filesInDirectory = Directory.GetFiles(executableDirectory + "\\" + seriesUID + "_mask").ToArray();
+				Dictionary<int, string> keyValuepair = new Dictionary<int, string>();
+				string path;
+				DicomImage dicomImg = null;
+				int instanceNumber;
+				for (int i = 0; i < filesInDirectory.Length; i++)
+				{
+					path = filesInDirectory[i];
+					dicomImg = new DicomImage(@path);
+					instanceNumber = dicomImg.Dataset.Get(DicomTag.InstanceNumber, 0);
+					keyValuepair.Add(instanceNumber, path);
+
+				}
+
+				string pathtoImage = keyValuepair[sliderValue + 1];
+				var dicomImage = new DicomImage(@pathtoImage);
+
+				Bitmap renderedImage = dicomImage.RenderImage().As<Bitmap>();
+				var ScreenCapture = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
+				renderedImage.GetHbitmap(),
+				IntPtr.Zero,
+				System.Windows.Int32Rect.Empty,
+				BitmapSizeOptions.FromWidthAndHeight(renderedImage.Width, renderedImage.Height));
+				image2.Source = ScreenCapture;
 			}
-
-			string pathtoImage = keyValuepair[sliderValue + 1];
-			var dicomImage = new DicomImage(@pathtoImage);
-
-			Bitmap renderedImage = dicomImage.RenderImage().As<Bitmap>();
-			var ScreenCapture = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
-			renderedImage.GetHbitmap(),
-			IntPtr.Zero,
-			System.Windows.Int32Rect.Empty,
-			BitmapSizeOptions.FromWidthAndHeight(renderedImage.Width, renderedImage.Height));
-			image2.Source = ScreenCapture;
+			
 		}
 
 		private void saveMasksButton_Click(object sender, RoutedEventArgs e)
@@ -232,18 +248,19 @@ namespace StacjaKwdm
 			var pathToFolder = executableDirectory + "\\" + _seriesUID + "_mask";
 			
 			string[] filesInDirectory = Directory.GetFiles(pathToFolder).ToArray();
+			var desc = tbDescription.Text;
 			foreach (var item in filesInDirectory)
 			{
 
 				var request = new RestRequest("instances", Method.POST);
 				string path= Path.Combine(pathToFolder, item);
-				//DicomFile dicomImg = DicomFile.Open(@path);
-				//dicomImg.Dataset.AddOrUpdate(DicomTag.StudyDescription, "ASDADADADADADADD");
-				//dicomImg.SaveAsync(@path);
-				//request.AddFile("content", @path);
+				DicomFile dicomFile = DicomFile.Open(path, FileReadOption.ReadAll);
+				dicomFile.Dataset.AddOrUpdate<string>(DicomTag.StudyDescription, desc);
+				dicomFile.Save(path);
+				request.AddFile("content", @path);
 				var query = _client.Execute(request);
 			}
-			
+			MessageBox.Show("Pomyślnie wysłano maski na serwer.", "Powodzenie!", MessageBoxButton.OK, MessageBoxImage.Information);
 		}
 
 		private void readMasksButton_Click(object sender, RoutedEventArgs e)
@@ -275,26 +292,34 @@ namespace StacjaKwdm
 				var newExecutableDirectory = Directory.GetParent(Assembly.GetExecutingAssembly().Location);
 				if (System.IO.Directory.Exists(executableDirectory + "\\" + maskSeriesUID + "_mask"))
 				{
-					System.IO.Directory.Delete(executableDirectory + "\\" + maskSeriesUID + "_mask",true);
+					System.IO.Directory.Delete(executableDirectory + "\\" + maskSeriesUID + "_mask", true);
 				}
 				System.IO.Directory.CreateDirectory(executableDirectory + "\\" + maskSeriesUID + "_mask");
 				var instances = newQuery.Data.Instances;
 				var exampleitem = instances.First();
 				string path2 = newExecutableDirectory + "\\" + maskSeriesUID + "_mask\\" + exampleitem.ToString() + ".dcm";
 				foreach (var item in instances)
-					{
+				{
 					var request2 = new RestRequest("instances/" + item + "/file", Method.GET); // /preview do .png
 					request2.AddHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
 					//var query2 = _client.Execute(request2);
 					_client.DownloadData(request2).SaveAs(newExecutableDirectory + "\\" + maskSeriesUID + "_mask\\" + item + ".dcm"); //asd.png
-					}
+				}
 				dicomImg = new DicomImage(@path2);
-				var description = dicomImg.Dataset.Get(DicomTag.StudyDescription, 0).ToString();
+				var description = dicomImg.Dataset.Get(DicomTag.StudyDescription, "").ToString();
 				tbDescription.Text = description;
 				DisplayMasks(maskSeriesUID, sliderValue);
 				masksAvailable = true;
 			}
-			MessageBox.Show("Brak masek na serwerze","Błąd",MessageBoxButton.OK,MessageBoxImage.Error);
+			else
+			{
+				MessageBox.Show("Brak masek na serwerze.", "Błąd!", MessageBoxButton.OK, MessageBoxImage.Error);
+			}
+		}
+
+		private void refreshBt_Click(object sender, RoutedEventArgs e)
+		{
+			GetPatients();
 		}
 	}
 }

@@ -10,7 +10,7 @@ for i=1:size(K,3)
     L(:,:,i)=Z1;
 end
 newStr = extractAfter(folderPath,"\\");
-
+ 
 while(contains(newStr,'\\'))
 newStr = extractAfter(newStr,"\\");
 end
@@ -27,10 +27,10 @@ for i=1:size(K,3)
     s.ImplementationClassUID=metadata{i}.ImplementationClassUID;
     s.SOPClassUID=metadata{i}.SOPClassUID;
     s.SOPInstanceUID=metadata{i}.SOPInstanceUID;
-    s.StudyInstanceUID=metadata{i}.StudyInstanceUID;
+    s.StudyInstanceUID=strcat(metadata{i}.StudyInstanceUID,'_mask');
     s.SeriesInstanceUID=metadata{i}.SeriesInstanceUID;
     s.InstanceNumber=metadata{i}.InstanceNumber;
-
+ 
     dicomwrite(L(:,:,i),filename,s);
 end
 end
