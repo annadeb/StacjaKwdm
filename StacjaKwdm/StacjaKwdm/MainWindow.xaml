@@ -40,7 +40,7 @@
         <Button x:Name="autoSegmentButton" Content="Segmentuj" Grid.Column="1" HorizontalAlignment="Stretch" Margin="10,10,10,10" Grid.Row="3" VerticalAlignment="Stretch" Click="autoSegmentButton_Click"/>
         <Button x:Name="readMasksButton" Content="Wczytaj maski" Grid.Column="2" HorizontalAlignment="Stretch" Margin="10,10,10,10" Grid.Row="3" VerticalAlignment="Stretch" Click="readMasksButton_Click"/>
         <TextBlock x:Name="tbDescription" Grid.Column="1" HorizontalAlignment="Stretch" Grid.Row="4" TextWrapping="Wrap" Margin="10,10,10,10"  Text="Opis" VerticalAlignment="Stretch"/>
-        <Button x:Name="saveMasksButton" Content="Zapisz maski" Grid.Column="1" HorizontalAlignment="Stretch" Margin="10,10,10,10" Grid.Row="5" VerticalAlignment="Stretch" Click="saveMasksButton_Click"/>
+        <Button x:Name="saveMasksButton" IsEnabled="False" Content="Zapisz maski" Grid.Column="1" HorizontalAlignment="Stretch" Margin="10,10,10,10" Grid.Row="5" VerticalAlignment="Stretch" Click="saveMasksButton_Click"/>
         <Label x:Name="statisticsLabel" Content="Statystyki" Grid.Column="2" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="4" VerticalAlignment="Top"/>
         <Label x:Name="volumeLabel" Content="Objętość guza" Grid.Column="2" HorizontalAlignment="Left" Margin="10,0,0,0" Grid.Row="5" VerticalAlignment="Top"/>
         <Label x:Name="diceLabel" Content="Dice" Grid.Column="2" HorizontalAlignment="Left" Margin="10,10,0,0" Grid.Row="5" VerticalAlignment="Bottom"/>

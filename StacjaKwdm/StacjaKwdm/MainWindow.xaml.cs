@@ -43,7 +43,8 @@ namespace StacjaKwdm
 			{
 				serverLabel.Content = "Połączono z serwerem.";
 			}
-			patientListBox.ItemsSource = query.Data;
+			var iter = query.Data.Count();
+			patientListBox.ItemsSource = query.Data.Take(iter - 1);
 			segmentationWorker.DoWork += SegmentationWorker_DoWork;
 		}
 	
@@ -55,6 +56,8 @@ namespace StacjaKwdm
 			var query = _client.Execute<Patient>(request);
 		
 			studyListBox.ItemsSource = query.Data.Studies;
+			image2.Source = null;
+			saveMasksButton.IsEnabled=false;
 		}
 
 		private void studyListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -134,12 +137,14 @@ namespace StacjaKwdm
 
 		private void autoSegmentButton_Click(object sender, RoutedEventArgs e)
 		{
+			
 			_position = image1.Position;
 			if (_position.X==0 && _position.Y==0)
 			{
 				MessageBox.Show("Wybierz punkt startowy!","Ostrzeżenie", MessageBoxButton.OK,MessageBoxImage.Warning);
 				return;
 			}
+			saveMasksButton.IsEnabled = true;
 			segmentationWorker.RunWorkerAsync();
 		}
 
@@ -154,7 +159,12 @@ namespace StacjaKwdm
 			var klasa = new Class1();
 			var executableDirectory = Directory.GetParent(Assembly.GetExecutingAssembly().Location);
 			MWArray folderpath = executableDirectory + "\\" + _seriesUID;
+			if (System.IO.Directory.Exists(executableDirectory + "\\" + _seriesUID + "_mask")) 
+			{
+				System.IO.Directory.Delete(executableDirectory + "\\" + _seriesUID + "_mask",true);
+			};
 			System.IO.Directory.CreateDirectory(executableDirectory + "\\" + _seriesUID + "_mask");
+			
 			MWArray outputPath = executableDirectory + "\\" + _seriesUID + "_mask";
 			var positionY = Math.Round(_position.Y);
 			var positionX = Math.Round(_position.X);
@@ -220,12 +230,17 @@ namespace StacjaKwdm
 		{
 			var executableDirectory = Directory.GetParent(Assembly.GetExecutingAssembly().Location);
 			var pathToFolder = executableDirectory + "\\" + _seriesUID + "_mask";
+			
 			string[] filesInDirectory = Directory.GetFiles(pathToFolder).ToArray();
 			foreach (var item in filesInDirectory)
 			{
+
 				var request = new RestRequest("instances", Method.POST);
 				string path= Path.Combine(pathToFolder, item);
-				request.AddFile("content", @path);
+				//DicomFile dicomImg = DicomFile.Open(@path);
+				//dicomImg.Dataset.AddOrUpdate(DicomTag.StudyDescription, "ASDADADADADADADD");
+				//dicomImg.SaveAsync(@path);
+				//request.AddFile("content", @path);
 				var query = _client.Execute(request);
 			}
 			
@@ -258,18 +273,28 @@ namespace StacjaKwdm
 				var newRequest = new RestRequest("series/" + maskSeriesUID, Method.GET);
 				var newQuery = _client.Execute<Serie>(newRequest);
 				var newExecutableDirectory = Directory.GetParent(Assembly.GetExecutingAssembly().Location);
+				if (System.IO.Directory.Exists(executableDirectory + "\\" + maskSeriesUID + "_mask"))
+				{
+					System.IO.Directory.Delete(executableDirectory + "\\" + maskSeriesUID + "_mask",true);
+				}
 				System.IO.Directory.CreateDirectory(executableDirectory + "\\" + maskSeriesUID + "_mask");
 				var instances = newQuery.Data.Instances;
+				var exampleitem = instances.First();
+				string path2 = newExecutableDirectory + "\\" + maskSeriesUID + "_mask\\" + exampleitem.ToString() + ".dcm";
 				foreach (var item in instances)
-				{
+					{
 					var request2 = new RestRequest("instances/" + item + "/file", Method.GET); // /preview do .png
 					request2.AddHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
 					//var query2 = _client.Execute(request2);
 					_client.DownloadData(request2).SaveAs(newExecutableDirectory + "\\" + maskSeriesUID + "_mask\\" + item + ".dcm"); //asd.png
-				}
+					}
+				dicomImg = new DicomImage(@path2);
+				var description = dicomImg.Dataset.Get(DicomTag.StudyDescription, 0).ToString();
+				tbDescription.Text = description;
 				DisplayMasks(maskSeriesUID, sliderValue);
 				masksAvailable = true;
 			}
+			MessageBox.Show("Brak masek na serwerze","Błąd",MessageBoxButton.OK,MessageBoxImage.Error);
 		}
 	}
 }
