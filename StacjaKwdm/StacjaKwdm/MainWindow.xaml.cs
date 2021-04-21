@@ -32,6 +32,7 @@ namespace StacjaKwdm
 		public bool masksAvailable = false;
 		BackgroundWorker segmentationWorker = new BackgroundWorker();
 		private delegate void UpdateMyDelegatedelegate(string text);
+		private string maskSeriesUID;
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -51,6 +52,8 @@ namespace StacjaKwdm
 				var iter = query.Data.Count();
 				patientListBox.ItemsSource = query.Data.Take(iter - 1);
 			}
+			masksAvailable = false;
+			maskSeriesUID = "";
 		}
 
 		private void patientListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -69,6 +72,8 @@ namespace StacjaKwdm
 			saveMasksButton.IsEnabled=false;
 			tbDescription.Text = "";
 			instanceListBox.ItemsSource = null;
+			masksAvailable = false;
+			maskSeriesUID = "";
 		}
 
 		private void studyListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -115,7 +120,7 @@ namespace StacjaKwdm
 			DisplayDicom(_seriesUID, sliderValue);
 			if (masksAvailable)
 			{
-				DisplayMasks(_seriesUID, sliderValue);
+				DisplayMasks(maskSeriesUID, sliderValue);
 			}
 		}
 		public void DisplayDicom(string seriesUID, int sliderValue)
@@ -182,6 +187,7 @@ namespace StacjaKwdm
 			var output = klasa.segment_tumor(folderpath, positionY, positionX, sliderValue + 1, outputPath);
 
 			masksAvailable = true;
+			maskSeriesUID = _seriesUID;
 
 			autoSegmentButton.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, UpdateMyDelegate,"Segmentuj");
 			busyImage.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Normal, UpdateMySpinner, "H");
@@ -194,7 +200,7 @@ namespace StacjaKwdm
 		}
 		private void UpdateMyDelegateImage(string text)
 		{
-			DisplayMasks(_seriesUID, sliderValue);
+			DisplayMasks(maskSeriesUID, sliderValue);
 		}
 		private void UpdateMyDelegateSpinner(string text)
 		{
@@ -212,9 +218,9 @@ namespace StacjaKwdm
 		{
 			var executableDirectory = Directory.GetParent(Assembly.GetExecutingAssembly().Location);
 			
-			if (Directory.Exists(executableDirectory + "\\" + seriesUID + "_mask"))
+			if (Directory.Exists(executableDirectory + "\\" + maskSeriesUID + "_mask"))
 			{
-				string[] filesInDirectory = Directory.GetFiles(executableDirectory + "\\" + seriesUID + "_mask").ToArray();
+				string[] filesInDirectory = Directory.GetFiles(executableDirectory + "\\" + maskSeriesUID + "_mask").ToArray();
 				Dictionary<int, string> keyValuepair = new Dictionary<int, string>();
 				string path;
 				DicomImage dicomImg = null;
@@ -285,7 +291,7 @@ namespace StacjaKwdm
 			var query = _client.Execute(request);
 			if (query.Content != "[]")
 			{
-				var maskSeriesUID = query.Content.Replace("\n", "").Replace("[", "").Replace("]", "").Replace("\"", "").Replace(" ", "");
+				maskSeriesUID = query.Content.Replace("\n", "").Replace("[", "").Replace("]", "").Replace("\"", "").Replace(" ", "");
 
 				var newRequest = new RestRequest("series/" + maskSeriesUID, Method.GET);
 				var newQuery = _client.Execute<Serie>(newRequest);
@@ -308,8 +314,8 @@ namespace StacjaKwdm
 				dicomImg = new DicomImage(@path2);
 				var description = dicomImg.Dataset.Get(DicomTag.StudyDescription, "").ToString();
 				tbDescription.Text = description;
-				DisplayMasks(maskSeriesUID, sliderValue);
 				masksAvailable = true;
+				DisplayMasks(maskSeriesUID, sliderValue);
 			}
 			else
 			{
