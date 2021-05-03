@@ -67,7 +67,7 @@ namespace StacjaKwdm
 					}	
 				}
 			}
-			var mainWindow = new MainWindow();
+			var mainWindow = new MainWindow(loginTb.Text);
 			mainWindow.Show();
 			this.Close(); 
 		}

@@ -33,12 +33,13 @@ namespace StacjaKwdm
 		BackgroundWorker segmentationWorker = new BackgroundWorker();
 		private delegate void UpdateMyDelegatedelegate(string text);
 		private string maskSeriesUID;
-		public MainWindow()
+		private string _user;
+		public MainWindow(string user)
 		{
 			InitializeComponent();
 			_client = new RestClient("http://localhost:8042");
 			GetPatients();
-
+			_user = user;
 			segmentationWorker.DoWork += SegmentationWorker_DoWork;
 		}
 	
@@ -254,7 +255,7 @@ namespace StacjaKwdm
 			var pathToFolder = executableDirectory + "\\" + _seriesUID + "_mask";
 			
 			string[] filesInDirectory = Directory.GetFiles(pathToFolder).ToArray();
-			var desc = tbDescription.Text;
+			var desc = tbDescription.Text + " ("+ _user + ")";
 			foreach (var item in filesInDirectory)
 			{
 
